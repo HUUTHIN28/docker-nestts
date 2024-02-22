@@ -1,17 +1,31 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Controller('')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get('auth')
-  checkAuth() {
-    return 'checkAuth';
+  async checkAuth() {
+    const authCache = await this.cacheManager.get('auth');
+    if (authCache) {
+      return authCache;
+    }
+    const auth = await this.authService.GetAuthTest();
+    await this.cacheManager.set('auth', auth);
+    return auth;
   }
 
-  @Post()
-  async Login(@Body() data: { email: string; password: string }) {}
+  @Post('log-in')
+  async Login(@Body() data: { email: string; password: string }) {
+    const logIn = await this.authService.Login(data);
+    return logIn;
+  }
 
   @Post('register')
   async Register(
