@@ -1,27 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthEntity } from 'src/entity/auth.entity';
 import { Repository } from 'typeorm';
-
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(AuthEntity)
     private usersRepository: Repository<AuthEntity>,
+    private jwtService: JwtService,
   ) {}
 
   async GetAuthTest(): Promise<any> {
     const auth = await this.usersRepository.find();
     if (!auth) {
-      return {
-        status: 400,
-        mes: 'Thất bại ',
-      };
+      throw new HttpException('err', HttpStatus.FOUND);
     }
-    return {
-      status: 200,
-      data: auth,
-    };
+    throw new HttpException({ data: auth }, HttpStatus.OK);
   }
 
   async Register(data: {
@@ -34,38 +29,32 @@ export class AuthService {
     });
 
     if (checkEmail) {
-      return {
-        status: 400,
-        mes: 'email exist',
-      };
+      throw new HttpException('email exist', HttpStatus.NOT_FOUND);
     }
 
     const createAuth = await this.usersRepository.save(data);
     if (!createAuth) {
-      return {
-        mes: 'thất bại',
-        code: 400,
-      };
+      throw new HttpException('error', HttpStatus.NOT_FOUND);
     }
-    return {
-      data: createAuth,
-      mes: 'thành công',
-      status: 200,
-    };
+
+    throw new HttpException('thành công', HttpStatus.OK);
   }
   async Login(data: { email: string; password: string }): Promise<any> {
     const checkEmail = await this.usersRepository.findOneBy({
       email: data.email,
     });
     if (!checkEmail) {
-      return {
-        status: 400,
-        mes: 'email not exist',
-      };
+      throw new HttpException('email exist', HttpStatus.NOT_FOUND);
     }
-    return {
-      status: 200,
-      mes: 'Thành công',
-    };
+    const payload = { sub: checkEmail.id, username: checkEmail.email };
+
+    throw new HttpException(
+      {
+        status: 200,
+        mes: 'Thành công',
+        access_token: await this.jwtService.signAsync(payload),
+      },
+      HttpStatus.OK,
+    );
   }
 }

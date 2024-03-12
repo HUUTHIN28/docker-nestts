@@ -6,7 +6,8 @@ import { DataSource } from 'typeorm';
 import { DatabaseProviders } from 'database/database.providers';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
-
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from '../utils/contants';
 @Module({
   imports: [
     DatabaseProviders,
@@ -17,6 +18,11 @@ import { redisStore } from 'cache-manager-redis-yet';
       store: redisStore,
       host: 'localhost',
       port: 6379,
+    }),
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
     }),
   ],
   controllers: [AppController],
