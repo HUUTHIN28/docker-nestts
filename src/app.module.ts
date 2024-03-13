@@ -8,6 +8,9 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../utils/contants';
+import { RolesGuard } from './middleware/guards';
+import { APP_GUARD } from '@nestjs/core';
+import { LocationModule } from './module/location/location.module';
 @Module({
   imports: [
     DatabaseProviders,
@@ -22,8 +25,9 @@ import { jwtConstants } from '../utils/contants';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '6000s' },
     }),
+    LocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

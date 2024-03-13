@@ -1,15 +1,18 @@
-import { Column, Entity } from "typeorm";
-import { DefaultEntity } from './default.entity'
+import { Column, Entity } from 'typeorm';
+import { DefaultEntity } from './default.entity';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class AuthEntity extends DefaultEntity {
+  @IsEmail()
+  @Column()
+  email: string;
 
-    @Column()
-    email:string
+  @IsNotEmpty()
+  @Column()
+  password: string;
 
-    @Column()
-    password:string
-
-    @Column()
-    role:string
-} 
+  @IsNotEmpty()
+  @Column()
+  role: string;
+}
