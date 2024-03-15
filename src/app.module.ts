@@ -11,6 +11,7 @@ import { jwtConstants } from '../utils/contants';
 import { RolesGuard } from './middleware/guards';
 import { APP_GUARD } from '@nestjs/core';
 import { LocationModule } from './module/location/location.module';
+import { HomeStayModule } from './module/home-stay/home-stay.module';
 @Module({
   imports: [
     DatabaseProviders,
@@ -25,9 +26,10 @@ import { LocationModule } from './module/location/location.module';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '6000s' },
+      signOptions: { expiresIn: '60s' },
     }),
     LocationModule,
+    HomeStayModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LocationEntity } from 'src/entity/location.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { typeLocation } from './type';
 import { MessageError } from 'utils/contants';
 
@@ -14,11 +14,15 @@ export class LocationService {
   async getLocation(
     filter: Awaited<typeLocation> & { limit: number; page: number },
   ) {
+    const name = filter.name || '';
     const location = await this.locationRepository.find({
-      where: filter,
-      select: {},
-      take: filter.limit || 10,
-      skip: filter.page || 0,
+      where: {
+        name: Like(`%${name}%`),
+      },
+      // select: ['name'],
+
+      take: filter.limit,
+      skip: filter.page * filter.limit,
     });
     if (!location) {
       throw new HttpException(MessageError.NotFound, HttpStatus.NOT_FOUND);
@@ -26,6 +30,20 @@ export class LocationService {
     const total = await this.getCount();
     throw new HttpException({ data: location, total: total }, HttpStatus.OK);
   }
+
+  async detailLocation(id: number) {
+    try {
+      const location = await this.locationRepository.findOneBy({ id });
+      if (!location) {
+        throw new HttpException(MessageError.NotFound, HttpStatus.NOT_FOUND);
+      }
+      return { data: location, status: HttpStatus.OK };
+    } catch (err) {
+      console.log('err', err);
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async addLocation(data: typeLocation) {
     const findCode = await this.locationRepository.findOneBy({
       code: data.code,

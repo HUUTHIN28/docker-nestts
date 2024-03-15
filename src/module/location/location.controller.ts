@@ -21,7 +21,13 @@ export class LocationController {
   @Roles(['user'])
   @UseGuards(RolesGuard)
   async getLocation(@Query() filter: any) {
-    const location = await this.locationService.getLocation(filter);
+    const locations = await this.locationService.getLocation(filter);
+    return locations;
+  }
+
+  @Get(':id')
+  async detail(@Param() { id }: { id: number }) {
+    const location = await this.locationService.detailLocation(id);
     return location;
   }
 
@@ -38,7 +44,7 @@ export class LocationController {
     return location;
   }
 
-  @Put('')
+  @Put(':id')
   async updateLocation(@Param() param: { id: number }, @Body() data: any) {
     const { id } = param;
     const location = await this.locationService.updateLocation(id, data);

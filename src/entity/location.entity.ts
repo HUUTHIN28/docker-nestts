@@ -4,7 +4,6 @@ import { IsBoolean, IsNotEmpty } from 'class-validator';
 
 @Entity()
 export class LocationEntity extends DefaultEntity {
-  @IsNotEmpty()
   @Column()
   name: String;
 

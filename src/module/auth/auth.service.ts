@@ -4,7 +4,7 @@ import { AuthEntity } from 'src/entity/auth.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { saltOrRounds } from 'utils/contants';
+import { jwtConstants, saltOrRounds } from 'utils/contants';
 @Injectable()
 export class AuthService {
   constructor(
@@ -65,11 +65,43 @@ export class AuthService {
 
     throw new HttpException(
       {
-        status: 200,
-        mes: 'Thành công',
+        status: HttpStatus.OK,
         access_token: await this.jwtService.signAsync(payload),
+        refreshToken: await this.jwtService.signAsync(payload, {
+          expiresIn: '30d',
+        }),
       },
       HttpStatus.OK,
     );
+  }
+  async refreshToken(refresh: string) {
+    try {
+      if (!refresh) {
+        throw new HttpException('error', HttpStatus.NOT_FOUND);
+      }
+      const payload = await this.jwtService.verifyAsync(refresh, {
+        secret: jwtConstants.secret,
+      });
+      const checkEmail = await this.usersRepository.findOneBy({
+        email: payload.email,
+      });
+      const data = {
+        sub: checkEmail.id,
+        username: checkEmail.email,
+        role: checkEmail.role,
+      };
+      const access_token = await this.jwtService.signAsync(data);
+      return {
+        status: 200,
+        mes: 'Thành công',
+        access_token: access_token,
+        // refreshToken: await this.jwtService.signAsync(data, {
+        //   expiresIn: '30d',
+        // }),
+      };
+    } catch (err) {
+      console.log('err', err);
+      throw new HttpException(err, HttpStatus.NOT_FOUND);
+    }
   }
 }
